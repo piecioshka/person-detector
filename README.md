@@ -1,0 +1,22 @@
+# Person Detector 🎥
+
+Watch a YouTube video or live stream (muted) and see every detected person framed with a bounding box, live in the browser.
+
+## Features ✨
+
+- 📡 Plays YouTube live streams and regular videos straight from a pasted link
+- 🟩 Draws a box with a confidence score around each detected person
+- 🧩 Tiled detection for wide shots where people are only a few pixels tall _(adjustable grid)_
+- 🎚️ Adjustable confidence threshold and a live people counter
+- 🧵 Inference runs in a Web Worker on the GPU, so the page stays responsive
+- 📁 Works with local video files too
+- 🔒 Everything runs locally: the model and runtime are bundled, no frames leave your machine
+- 🌗 Light and dark theme, Polish and English interface, keyboard shortcuts under `?`
+
+## Contributing 🛠️
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License 📄
+
+[The MIT License](https://piecioshka.mit-license.org) @ 2026
