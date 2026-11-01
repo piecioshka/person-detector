@@ -21,9 +21,12 @@ export function toPersonBoxes(result: DetectionResult, minScore: number): Person
   return boxes;
 }
 
-/** Line width proportional to the frame, so boxes look the same on 360p and 1080p. */
-export function strokeWidthFor(frameWidth: number): number {
-  return Math.max(2, Math.round(frameWidth / 320));
+/**
+ * The overlay canvas has the video's resolution but is scaled to fit the page, so sizes
+ * meant in screen pixels (line width, label font) must be converted to video pixels.
+ */
+export function videoPixelsPerScreenPixel(frameWidth: number, displayWidth: number): number {
+  return frameWidth > 0 && displayWidth > 0 ? frameWidth / displayWidth : 1;
 }
 
 export interface Rect {

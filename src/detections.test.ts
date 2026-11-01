@@ -1,6 +1,6 @@
 import type { ObjectDetectorResult as DetectionResult } from '@mediapipe/tasks-vision';
 import { describe, expect, it } from 'vitest';
-import { computeTiles, mergeBoxes, strokeWidthFor, toPersonBoxes } from './detections';
+import { computeTiles, mergeBoxes, toPersonBoxes, videoPixelsPerScreenPixel } from './detections';
 
 function detection(categoryName: string, score: number) {
   return {
@@ -26,11 +26,15 @@ describe('toPersonBoxes', () => {
   });
 });
 
-describe('strokeWidthFor', () => {
-  it('scales with the frame width and never drops below 2 px', () => {
-    expect(strokeWidthFor(320)).toBe(2);
-    expect(strokeWidthFor(1280)).toBe(4);
-    expect(strokeWidthFor(1920)).toBe(6);
+describe('videoPixelsPerScreenPixel', () => {
+  it('converts screen pixels to video pixels of a scaled-down overlay', () => {
+    expect(videoPixelsPerScreenPixel(1280, 640)).toBe(2);
+    expect(videoPixelsPerScreenPixel(1280, 1280)).toBe(1);
+  });
+
+  it('falls back to 1 before the video or layout is ready', () => {
+    expect(videoPixelsPerScreenPixel(0, 640)).toBe(1);
+    expect(videoPixelsPerScreenPixel(1280, 0)).toBe(1);
   });
 });
 

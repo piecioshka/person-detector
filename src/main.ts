@@ -1,6 +1,6 @@
 import Hls from 'hls.js';
 import './styles.css';
-import { gridSize, strokeWidthFor, type PersonBox } from './detections';
+import { gridSize, videoPixelsPerScreenPixel, type PersonBox } from './detections';
 import type { DetectRequest, WorkerResponse } from './worker-protocol';
 import { getLang, initialLang, setLang, t, type MessageKey } from './i18n';
 import { initTheme } from './theme';
@@ -29,6 +29,8 @@ const playButton = byId('play-button', HTMLButtonElement);
 const fileInput = byId('file-input', HTMLInputElement);
 const thresholdInput = byId('threshold', HTMLInputElement);
 const thresholdValue = byId('threshold-value', HTMLOutputElement);
+const lineWidthInput = byId('line-width', HTMLInputElement);
+const lineWidthValue = byId('line-width-value', HTMLOutputElement);
 const tilingInput = byId('tiling', HTMLInputElement);
 const tilingValue = byId('tiling-value', HTMLOutputElement);
 const boxesToggle = byId('boxes-toggle', HTMLInputElement);
@@ -36,6 +38,10 @@ const peopleCount = byId('people-count', HTMLElement);
 const detectionFps = byId('detection-fps', HTMLElement);
 const statusLine = byId('status', HTMLElement);
 const langFlag = byId('lang-flag', HTMLElement);
+
+const LINE_WIDTH_STORAGE_KEY = 'person-detector:line-width';
+const LABEL_FONT_PX = 12;
+const LABEL_PADDING_PX = 3;
 
 const context = overlay.getContext('2d');
 const worker = new Worker(new URL('./detection.worker.ts', import.meta.url), { type: 'module' });
@@ -85,8 +91,10 @@ function draw(boxes: PersonBox[]): void {
   if (!boxesToggle.checked) {
     return;
   }
-  const lineWidth = strokeWidthFor(overlay.width);
-  const fontSize = lineWidth * 6;
+  const scale = videoPixelsPerScreenPixel(overlay.width, overlay.clientWidth);
+  const lineWidth = Number(lineWidthInput.value) * scale;
+  const fontSize = LABEL_FONT_PX * scale;
+  const padding = LABEL_PADDING_PX * scale;
   context.lineWidth = lineWidth;
   context.font = `600 ${fontSize}px system-ui, sans-serif`;
   context.textBaseline = 'top';
@@ -98,13 +106,13 @@ function draw(boxes: PersonBox[]): void {
       continue;
     }
     const label = `${t('person')} ${Math.round(box.score * 100)}%`;
-    const labelWidth = context.measureText(label).width + lineWidth * 4;
-    const labelHeight = fontSize + lineWidth * 2;
+    const labelWidth = context.measureText(label).width + padding * 2;
+    const labelHeight = fontSize + padding * 2;
     const labelY = box.y >= labelHeight ? box.y - labelHeight : box.y;
     context.fillStyle = '#22c55e';
     context.fillRect(box.x - lineWidth / 2, labelY, labelWidth, labelHeight);
     context.fillStyle = '#052e16';
-    context.fillText(label, box.x + lineWidth * 1.5, labelY + lineWidth);
+    context.fillText(label, box.x + padding, labelY + padding);
   }
 }
 
@@ -243,6 +251,32 @@ thresholdInput.addEventListener('input', () => {
   thresholdValue.textContent = `${thresholdInput.value}%`;
 });
 
+function renderLineWidthValue(): void {
+  lineWidthValue.textContent = `${lineWidthInput.value} px`;
+}
+
+function restoreLineWidth(): void {
+  try {
+    const stored = localStorage.getItem(LINE_WIDTH_STORAGE_KEY);
+    if (stored !== null) {
+      lineWidthInput.value = stored;
+    }
+  } catch {
+    // Storage may be unavailable; keep the default.
+  }
+  renderLineWidthValue();
+}
+
+lineWidthInput.addEventListener('input', () => {
+  renderLineWidthValue();
+  draw(lastBoxes);
+  try {
+    localStorage.setItem(LINE_WIDTH_STORAGE_KEY, lineWidthInput.value);
+  } catch {
+    // Storage may be unavailable; the width just won't persist.
+  }
+});
+
 tilingInput.addEventListener('input', renderTilingValue);
 video.addEventListener('loadedmetadata', renderTilingValue);
 
@@ -263,6 +297,7 @@ initShortcuts({
   onToggleBoxes: toggleBoxes,
   onFocusUrl: () => urlInput.focus(),
 });
+restoreLineWidth();
 applyLang(initialLang());
 setStatus('statusLoadingModel');
 video.requestVideoFrameCallback(detectFrame);

@@ -41,3 +41,11 @@ test('theme toggle flips data-theme', async ({ page }) => {
   await page.locator('#theme-toggle').click();
   await expect(html).not.toHaveAttribute('data-theme', before ?? '');
 });
+
+test('box line width setting is shown and remembered after reload', async ({ page }) => {
+  const slider = page.locator('#line-width');
+  await slider.fill('3');
+  await expect(page.locator('#line-width-value')).toHaveText('3 px');
+  await page.reload();
+  await expect(slider).toHaveValue('3');
+});
