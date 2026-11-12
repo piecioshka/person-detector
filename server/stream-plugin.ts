@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { once } from 'node:events';
 import { promisify } from 'node:util';
 import type { Connect, Plugin } from 'vite';
+import { fetchAllowed } from './upstream.ts';
 import { vendorMiddleware } from './vendor-middleware.ts';
 import { isAllowedMediaUrl, isPlaylistContentType, parseYouTubeVideoId, rewritePlaylist, toProxyUrl } from './hls.ts';
 
@@ -12,6 +13,7 @@ const execFileAsync = promisify(execFile);
 const FORMAT =
   'bv*[protocol^=m3u8][height<=720]/b[protocol^=m3u8][height<=720]/b[ext=mp4][height<=720]/bv*[ext=mp4][height<=720]';
 const CACHE_TTL_MS = 10 * 60 * 1000;
+const UPSTREAM_TIMEOUT_MS = 15_000;
 const FORWARDED_HEADERS = ['content-type', 'content-length', 'content-range', 'accept-ranges'];
 
 export interface ResolvedStream {
@@ -87,17 +89,22 @@ async function handleProxy(url: URL, req: IncomingMessage, res: ServerResponse):
   if (typeof req.headers.range === 'string') {
     headers.range = req.headers.range;
   }
-  const upstream = await fetch(target, { headers, redirect: 'follow' });
-  if (!isAllowedMediaUrl(upstream.url)) {
+  const controller = new AbortController();
+  res.on('close', () => controller.abort());
+  // Bounds only the wait for response headers; a media body may legitimately stream for minutes.
+  const timer = setTimeout(() => controller.abort(new Error('upstream timed out')), UPSTREAM_TIMEOUT_MS);
+  const allowed = await fetchAllowed(target, headers, controller.signal).finally(() => clearTimeout(timer));
+  if (!allowed) {
     sendJson(res, 403, { error: 'redirect-not-allowed' });
     return;
   }
+  const { response: upstream, url: finalUrl } = allowed;
   res.statusCode = upstream.status;
   const contentType = upstream.headers.get('content-type');
   if (isPlaylistContentType(contentType)) {
     res.setHeader('content-type', contentType ?? 'application/vnd.apple.mpegurl');
     res.setHeader('cache-control', 'no-store');
-    res.end(rewritePlaylist(await upstream.text(), upstream.url));
+    res.end(rewritePlaylist(await upstream.text(), finalUrl));
     return;
   }
   for (const name of FORWARDED_HEADERS) {
