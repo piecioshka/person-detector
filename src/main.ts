@@ -316,3 +316,11 @@ worker.addEventListener('message', (event: MessageEvent<WorkerResponse>) => {
     setStatus('statusError', message.message);
   }
 });
+
+// Fires when the worker script itself fails to load (e.g. a stale Vite dep returning 504),
+// which otherwise leaves the status stuck on "Loading model…".
+worker.addEventListener('error', (event) => {
+  event.preventDefault();
+  workerBusy = false;
+  setStatus('statusError', event.message || 'worker failed to load');
+});
