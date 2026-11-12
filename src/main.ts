@@ -42,6 +42,8 @@ const statusLine = byId('status', HTMLElement);
 const langFlag = byId('lang-flag', HTMLElement);
 
 const LINE_WIDTH_STORAGE_KEY = 'person-detector:line-width';
+// yt-dlp may take up to 60 s on the server; leave room for the response on top of that.
+const STREAM_TIMEOUT_MS = 75_000;
 const LABEL_FONT_PX = 12;
 const LABEL_PADDING_PX = 3;
 
@@ -186,11 +188,14 @@ function playHls(src: string): void {
 async function playYouTube(url: string): Promise<void> {
   resetSource();
   setStatus('statusResolving');
-  const response = await fetch(`/api/stream?url=${encodeURIComponent(url)}`);
-  const body: unknown = await response.json();
+  const response = await fetch(`/api/stream?url=${encodeURIComponent(url)}`, {
+    signal: AbortSignal.timeout(STREAM_TIMEOUT_MS),
+  });
+  const body = await readJson(response);
   if (!response.ok || !isStreamResponse(body)) {
-    const detail = typeof body === 'object' && body !== null && 'error' in body ? String(body.error) : response.status;
-    setStatus('statusError', String(detail));
+    const detail =
+      typeof body === 'object' && body !== null && 'error' in body ? String(body.error) : `HTTP ${response.status}`;
+    setStatus('statusError', detail);
     return;
   }
   if (body.kind === 'hls') {
@@ -200,6 +205,18 @@ async function playYouTube(url: string): Promise<void> {
   }
   setStatus(body.live ? 'statusLive' : 'statusPlaying', body.title);
   await video.play();
+}
+
+// A proxy or dev server error page (e.g. a 504 in HTML) is not JSON; treat it as no body.
+async function readJson(response: Response): Promise<unknown> {
+  if (!response.headers.get('content-type')?.includes('application/json')) {
+    return null;
+  }
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 function isStreamResponse(value: unknown): value is StreamResponse {
@@ -232,6 +249,10 @@ function toggleBoxes(): void {
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   playYouTube(urlInput.value).catch((error: unknown) => {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      setStatus('statusTimeout');
+      return;
+    }
     setStatus('statusError', error instanceof Error ? error.message : String(error));
   });
 });

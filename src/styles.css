@@ -266,7 +266,8 @@ body {
   white-space: nowrap;
 }
 
-.status[data-state='statusError'] {
+.status[data-state='statusError'],
+.status[data-state='statusTimeout'] {
   color: var(--error);
 }
 
