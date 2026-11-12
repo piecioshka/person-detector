@@ -1,5 +1,4 @@
 import Hls from 'hls.js';
-import './styles.css';
 import { gridSize, videoPixelsPerScreenPixel, type PersonBox } from './detections';
 import type { DetectRequest, WorkerResponse } from './worker-protocol';
 import { getLang, initialLang, setLang, t, type MessageKey } from './i18n';
@@ -299,6 +298,7 @@ initShortcuts({
 });
 restoreLineWidth();
 applyLang(initialLang());
+delete document.documentElement.dataset.i18nPending;
 setStatus('statusLoadingModel');
 video.requestVideoFrameCallback(detectFrame);
 

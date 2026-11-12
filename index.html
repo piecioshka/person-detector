@@ -6,6 +6,7 @@
     <meta name="description" content="Detects people on a live video stream and draws bounding boxes around them" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Wykrywacz ludzi</title>
+    <link rel="stylesheet" href="/src/styles.css" />
     <script>
       // Apply the theme before the first paint to avoid a flash.
       (function () {
@@ -17,6 +18,17 @@
           theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.dataset.theme = theme;
+        // Hide the page until main.ts swaps the Polish markup texts for another language.
+        var lang = null;
+        try {
+          lang = localStorage.getItem('person-detector:lang');
+        } catch (e) {}
+        if (lang !== 'pl' && lang !== 'en') {
+          lang = navigator.language.toLowerCase().indexOf('pl') === 0 ? 'pl' : 'en';
+        }
+        if (lang !== 'pl') {
+          document.documentElement.dataset.i18nPending = '';
+        }
       })();
     </script>
   </head>

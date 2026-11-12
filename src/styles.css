@@ -39,6 +39,11 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Set by the inline script in index.html until the UI language is applied. */
+:root[data-i18n-pending] body {
+  visibility: hidden;
+}
+
 body {
   margin: 0;
   background: var(--bg);
