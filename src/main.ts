@@ -20,6 +20,9 @@ function byId<T extends HTMLElement>(id: string, type: new () => T): T {
   return element;
 }
 
+// Set for the GitHub Pages build, which has no server for resolving YouTube streams.
+const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === 'true';
+
 const video = byId('video', HTMLVideoElement);
 const overlay = byId('overlay', HTMLCanvasElement);
 const form = byId('source-form', HTMLFormElement);
@@ -297,6 +300,10 @@ initShortcuts({
   onFocusUrl: () => urlInput.focus(),
 });
 restoreLineWidth();
+if (STATIC_DEMO) {
+  byId('static-notice', HTMLElement).hidden = false;
+  urlInput.disabled = true;
+}
 applyLang(initialLang());
 delete document.documentElement.dataset.i18nPending;
 setStatus('statusLoadingModel');
@@ -306,8 +313,8 @@ worker.addEventListener('message', (event: MessageEvent<WorkerResponse>) => {
   const message = event.data;
   if (message.type === 'ready') {
     workerReady = true;
-    playButton.disabled = false;
-    setStatus('statusReady');
+    playButton.disabled = STATIC_DEMO;
+    setStatus(STATIC_DEMO ? 'statusReadyStatic' : 'statusReady');
   } else if (message.type === 'result') {
     workerBusy = false;
     showResult(message.boxes);

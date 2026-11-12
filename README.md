@@ -2,6 +2,12 @@
 
 Watch a YouTube video or live stream (muted) and see every detected person framed with a bounding box, live in the browser.
 
+## Live demo 🌐
+
+Try it at [piecioshka.github.io/person-detector](https://piecioshka.github.io/person-detector/).
+
+> [!NOTE] The online demo works with local video files only. YouTube videos and live streams need the local server, so [clone the repository](https://github.com/piecioshka/person-detector) and run it yourself.
+
 ## Features ✨
 
 - 📡 Plays YouTube live streams and regular videos straight from a pasted link

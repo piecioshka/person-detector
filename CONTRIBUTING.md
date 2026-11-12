@@ -44,6 +44,12 @@ flowchart LR
 | `npm run format:check` | Prettier check                                             |
 | `npm run ci`           | Everything CI runs; also the `pre-push` hook               |
 
+## GitHub Pages
+
+`.github/workflows/pages.yml` deploys a static build on every push to `main`. It builds with `BASE_PATH` (the `/person-detector/` subpath) and `VITE_STATIC_DEMO=true`, which disables the YouTube URL field and shows a notice pointing to this repository, because Pages has no server for `yt-dlp` and the HLS proxy. Local file playback and detection work as usual.
+
+Reproduce it locally: `BASE_PATH=/person-detector/ VITE_STATIC_DEMO=true npm run build`.
+
 ## Keyboard shortcuts
 
 - `?` shows the cheat sheet
