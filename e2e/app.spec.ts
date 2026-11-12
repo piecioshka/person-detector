@@ -49,3 +49,7 @@ test('box line width setting is shown and remembered after reload', async ({ pag
   await page.reload();
   await expect(slider).toHaveValue('3');
 });
+
+test('video player shows its native controls by default', async ({ page }) => {
+  await expect(page.locator('#video')).toHaveJSProperty('controls', true);
+});
