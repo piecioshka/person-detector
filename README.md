@@ -1,5 +1,7 @@
 # Person Detector 🎥
 
+![Person Detector: every person in a live stream, found and framed as it plays](docs/banner.png)
+
 Watch a YouTube video or live stream (muted) and see every detected person framed with a bounding box, live in the browser.
 
 ## Live demo 🌐
