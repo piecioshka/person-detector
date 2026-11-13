@@ -4,6 +4,13 @@
 
 Watch a YouTube video or live stream (muted) and see every detected person framed with a bounding box, live in the browser.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/detection-dark.png">
+  <img alt="Person Detector - detection" src="docs/screenshots/detection-light.png">
+</picture>
+
+_Video in the screenshot: [Shibuya Crossing, Tokyo, Japan](<https://commons.wikimedia.org/wiki/File:Shibuya_Crossing,_Tokyo,_Japan_(video).webm>) by Basile Morin, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)._
+
 ## Live demo 🌐
 
 Try it at [piecioshka.github.io/person-detector](https://piecioshka.github.io/person-detector/).
